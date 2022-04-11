@@ -4,7 +4,7 @@ class VideoCamera(object):
     def __init__(self):
         self.dispW = 960
         self.dispH = 720
-        pipeline = 'nvarguscamerasrc sensor_id=ID ! video/x-raw(memory:NVMM), width=X, height=Y, format=(string)NV12 ! nvvidconv flip-method=3 ! video/x-raw, width='+str(self.dispW)+', height='+str(self.dispH)+', format=I420, appsink max-buffers=1 drop=true'
+        pipeline = :"nvarguscamerasrc ! ‘video/x-raw(memory:NVMM), width=1920, height=1080, format=(string)NV12, framerate=(fraction)30/1' ! nvoverlaysink -e"
         self.video = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
         
     def __del__(self):
