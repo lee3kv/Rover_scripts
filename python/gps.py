@@ -31,7 +31,7 @@ def data_format():
     if (date[0] == '0'):
         date = date[1:]
 
-     a,b = get_location()
+    a,b = get_location()
         
     # gps data schema
     gpsdata= {
