@@ -55,8 +55,8 @@ def data_upload(sc):
 
     # console log to show updates
     print("\nGPS DATA UPDATED AT: {0}".format(local_time))
-    print("Latitude: {0} C".format(a))
-    print("Longitude: {0} %%".format(b))
+    print("Latitude: {0} °".format(a))
+    print("Longitude: {0} °".format(b))
     # repeat every 5 seconds
     s.enter(5, 2, data_upload, (s,))
 
