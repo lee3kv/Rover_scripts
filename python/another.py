@@ -14,6 +14,6 @@ def get_location():
     return -999.99, -999.99
   
 # See the inline docs for GpsResponse for the available data
-a,b = get_location
+a,b = get_location()
 print(a)
 print(b)
