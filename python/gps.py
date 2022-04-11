@@ -1,42 +1,16 @@
-import sched, time, board
+import sched, time
 from pymongo import MongoClient
-from adafruit_bme280 import basic 
+import gpsd
 
 # setup for database
 client = MongoClient("mongodb+srv://Senior:Senior2022@cluster0.o1ezz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 db = client["Data"]
-collection = db["BME"]
+collection = db["GPS"]
 
 # setup for scheduler
 s = sched.scheduler(time.time, time.sleep)
 
-# setup for bme280
-i2c = board.I2C()
-bme280 = basic.Adafruit_BME280_I2C(i2c)
-# change this to match the location's pressure (hPa) at sea level
-bme280.sea_level_pressure = 1013.25
-
-def data_format():
-    # grab latest time every callback
-    hour = time.strftime("%I_%M_%S", time.localtime())
-    date = time.strftime("%m_%d", time.localtime())
-
-    if (date[0] == '0'):
-        date = date[1:]
-
-    # bme data schema
-    bme280data = {
-        "date": date,
-        "hour": hour,
-        "temp": "{:.2f}".format(bme280.temperature), 
-        "humidity": "{:.2f}".format(bme280.relative_humidity), 
-        "pressure": "{:.2f}".format(bme280.pressure),
-        "altitude": "{:.2f}".format(bme280.altitude),
-    }
-    
- import gpsd
-
-# Connect to the local gpsd
+# setup for GPS
 gpsd.connect()
 
 def get_location():
@@ -48,14 +22,27 @@ def get_location():
     return lat, lon
   except gpsd.NoFixError:
     return -999.99, -999.99
-  
-# See the inline docs for GpsResponse for the available data
-a,b = get_location()
-print(a)
-print(b)
+
+def data_format():
+    # grab latest time every callback
+    hour = time.strftime("%I_%M_%S", time.localtime())
+    date = time.strftime("%m_%d", time.localtime())
+
+    if (date[0] == '0'):
+        date = date[1:]
+
+     a,b = get_location()
+        
+    # gps data schema
+    gpsdata= {
+        "date": date,
+        "hour": hour,
+        "lat": a,
+        "lon": b
+    }
 
     # updates data with the latest values
-    update = {'$push': bme280data}
+    update = {'$push': gpsdata}
     return update
 
 def data_upload(sc): 
@@ -64,14 +51,13 @@ def data_upload(sc):
     # setup for time
     seconds = time.time()
     local_time = time.ctime(seconds)
+    a,b = get_location()
 
     # console log to show updates
-    print("\nBME DATA UPDATED AT: {0}".format(local_time))
-    print("Temperature: {0} C".format(bme280.temperature))
-    print("Humidity: {0} %%".format(bme280.relative_humidity))
-    print("Pressure: {0} hPa".format(bme280.pressure))
-    print("Altitude: {0} meters".format(bme280.altitude))
-    # repeat every 10 seconds
+    print("\nGPS DATA UPDATED AT: {0}".format(local_time))
+    print("Latitude: {0} C".format(a))
+    print("Longitude: {0} %%".format(b))
+    # repeat every 5 seconds
     s.enter(5, 2, data_upload, (s,))
 
 # initiates data being sent to database
